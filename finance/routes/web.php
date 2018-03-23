@@ -40,7 +40,12 @@ Route::get('/yodlee', 'YodleeTransactionsController@index')->name('yodlee.index'
 
 Route::get('/paymentsday','DayController@index')->name('paymentsday.index')->middleware('admin');
 
-//Route::get('/paymentsmonth',)->name('paymentsmonth.index')->middleware('admin');
+Route::get('/UserConsulta/{Fecha}/{Nom}/{DiasFinal}','DayController@UserConsulta')->name('UserConsulta.index')->middleware('admin');
+
+//Route::post('UserConsulta/{Fecha}/{ContDiasF}/{DiasFinal}', ['as'=> 'UserConsulta','Fecha','ContDiasF','DiasFinal' =>'DayController@Lista'])->middleware('admin');{{$ContDiasF[$key]}/{{$nom}}
+
+
+Route::get('/paymentsmonth')->name('paymentsmonth.index')->middleware('admin');
 
 Route::get('/yodlee/{yodlee}/edit', 'YodleeTransactionsController@edit')->name('yodlee.edit')->middleware('admin');
 Route::put('/yodlee/{yodlee}', 'YodleeTransactionsController@update')->name('yodlee.update')->middleware('admin');
