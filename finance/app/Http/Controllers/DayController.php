@@ -14,15 +14,14 @@ class DayController extends Controller
      public function UserConsulta($Fecha,$Nom,$DiasFinal)
     {
             /////////DiasFinal  Posicion de ubicacion del dia
-
-            //dd($Fecha);
+           
                    if ($Nom=='Monday'&&$DiasFinal>=2) {
 
                         list($Y, $m,$d) = explode('-', $Fecha); 
                         $fechas=$d+2; 
                         $UserDia=DB::table('tenancies')->whereMonth('next_payment_date', '=',$m)->whereDay('next_payment_date', '>=', $d)->whereDay('next_payment_date', '<=', $fechas)->get();
                         $Fecha=$Y.'-'.$m.'-'.$fechas;
-                       dd($Fecha);
+                     
                    } else {
 
 
@@ -39,128 +38,120 @@ class DayController extends Controller
                     }
                     }
 
+                    dd($UserDia);
+
          return view( "paymentsmonth.index")->with(['UserDia'=> $UserDia, 'Nom'=>$Nom ,'Fecha'=>$Fecha]);
        
     }
     
 
     public function index()
-    {  $cant=0;               
-            $diaini=Carbon::now()->format('d');
-            $diaValidar=Carbon::now()->format('d-m-Y');
-            $diafin=Carbon::now()->addDay(8)->format('j');
-            $diaValidarF=Carbon::now()->addDay(8)->format('m-d-Y');
-            $mes=Carbon::now()->format('m');
-             $day=DayController::fecha(); 
-             $semana=DayController::Validar_dia($diaValidar);            
-                                               
-
-            if ($diafin>$day) {
-                 $diafin=$diafinfin-$dia;
+    {     
+      $cant=0;               
+      $diaini=Carbon::now()->format('d');
+      $diaValidar=Carbon::now()->format('d-m-Y');
+      $diafin=Carbon::now()->addDay(8)->format('j');
+      $diaValidarF=Carbon::now()->addDay(8)->format('m-d-Y');
+      $mes=Carbon::now()->format('m');
+      $day=DayController::fecha(); 
+      $semana=DayController::Validar_dia($diaValidar);                                  
+                    
+            if ($diafin<$day) {
+                
                 $mesfi=$mes+1;
 
-               
-                            //$cont=DB::table('tenancies')->whereMonth('next_payment_date', '>=',$mes)->whereMonth('next_payment_date', '>=',$mesfi)->whereDay('next_payment_date', '>=', $diaini)->whereDay('next_payment_date', '<=', $diafin)->count();
+                           $cont1=DB::table('tenancies')->select('tenancies.next_payment_date')->whereMonth('next_payment_date', '=',$mes)->whereDay('next_payment_date', '>=', $diaini)->groupBy('next_payment_date')->get();
 
-                             $cont=DB::table('tenancies')->select('tenancies.next_payment_date')->whereMonth('next_payment_date', '>=',$mes)->whereMonth('next_payment_date', '>=',$mesfi)->whereDay('next_payment_date', '>=', $diaini)->whereDay('next_payment_date', '<=', $diafin)->groupBy('next_payment_date')->get();
-            
+
+                             $cont2=DB::table('tenancies')->select('tenancies.next_payment_date')->whereMonth('next_payment_date', '=',$mesfi)->whereDay('next_payment_date', '<=', $diafin)->groupBy('next_payment_date')->get();
+
+                             $cont1=$cont1->toarray();
+                             $cont2=$cont2->toarray();
+                             $cont=array_merge($cont1,$cont2);
+
                    } else {
              
                             $cont=DB::table('tenancies')->select('tenancies.next_payment_date')->whereMonth('next_payment_date', '=',$mes)->whereDay('next_payment_date', '>=', $diaini)->whereDay('next_payment_date', '<=', $diafin)->groupBy('next_payment_date')->get();
                //////////contando dias              
+                               $cont=$cont->toarray(); 
+
+                          } 
 
 
-                     //$cont=DB::table('tenancies')->select('tenancies.id','tenancies.next_payment_date')->whereMonth('next_payment_date', '=',$mes)->whereDay('next_payment_date', '=', $diaini)->get();
 
-                        //ORDER BY orderBy('tenancies.next_payment_date', 'asc')
+            foreach ($cont as $CONTS) {
 
-
-            
-
-                               $cont3=$cont->toarray();  
-
-            
-     
-           foreach ($cont3 as $CONTS) {
-
+              //  dd($CONTS->next_payment_date);
               $ContDias[]=DayController::contar($CONTS->next_payment_date);  
                $Fecha[]=$CONTS->next_payment_date;
                 }
                 
+               // dd($ContDias);
 
-                $DiasPropuestos=DayController::Calculo_D($cont3);
+                $DiasPropuestos=DayController::Calculo_D($cont);
 
             
 
                  
-                  // dd($DiasPropuestos);
+                //dd($DiasPropuestos);
 
-                foreach ($DiasPropuestos as $key => $Dia) {
-                    $keys=$key;
-                        
-                    if ($Dia=='Saturday') {                        
-                      
-                      $keys=$key+2;
-
+        
+         foreach ($DiasPropuestos as $key => $Dia) {      
+                    if ($Dia=='Saturday') {
                       foreach ( $DiasPropuestos as $value =>$busca ) {
-                         
-                         if($busca=='Monday'){
-                               // dd($);
                                
-                             $ContDiasF[$value-2]=$ContDias[$value-2]+$ContDias[$value-1]+$ContDias[$value];
-                             break;
+                               if($busca=='Monday' && $value>1){
 
-                         }
 
-                      }                       
-                       // $DiasFinal[]='Monday';
-                      $keys=$key-2;
+                                          //dd($value);                               
+                                           //$ContDiasF[$value-2]=$ContDias[$value-2]+$ContDias[$value-1]+$ContDias[$value];
+                                           $ContDiasF[$value-$key]=$ContDias[$key]+$ContDias[$key-1]+$ContDias[$value];
+                                           break;
+                                           }
+                                        }                       
+                                   // $DiasFinal[]='Monday';
+                                   // $keys=$key-2;
                          
 
 
 
-                    } 
-
-
-                    else {
+                    }else {
                         
-                        if ($Dia=='Sunday') {                            
+                              if ($Dia=='Sunday') {                            
 
-                            $keys=$key+1;
-                            foreach ( $DiasPropuestos as $value =>$busca ) {
-
-                                        
-                                     if($busca=='Monday'){
-
-                                        $DiasFinal[]=$busca;
-                                        
-                                         }
-                                         
+                           // $keys=$key+1;
+                                  foreach ( $DiasPropuestos as $value =>$busca ) {                                     
+                                          if($busca=='Monday' && $value>=1){                                    
+                                              //dd($key);  
+                                             $ContDiasF[$value-$key]=$ContDias[$key]+$ContDias[$value];
+                                             break;
+                                             // $DiasFinal[]=$busca;                                        
+                                            }                                         
                                       } 
                              
-                            $keys=$key-1;
-                                
+                                  // $keys=$key-1;                      
 
-                        } else {
+                                  } else {
+                                           // $keys=$key-1;
+                                            if ($Dia=='Monday') {
 
-                                if ($Dia=='Monday') {
-                                   // dd($Dia);
-                                   // $DiasFinal[]=$Dia;
-
-                                     } else {                                
-                                            
-                                    $DiasFinal[]=$Dia;
-                                    $ContDiasF[]=$ContDias[$key];
-                                } 
-                                }
-                  }
+                                                  //dd($Dia);
+                                                 $DiasFinal[]=$Dia;
+                                                 $ContDiasF[]=$ContDias[$key];
+                                            } else { 
+                                                   
+                                                   $DiasFinal[]=$Dia;
+                                                   $ContDiasF[]=$ContDias[$key];
+                                            } 
+                                        }
+                          }
 
                    
                 }
-                  //dd($DiasFinal);
-                 
+             //dd($DiasFinal);
+             //   dd($ContDiasF); 
 
-              }         
+                      
                     return view( "paymentsday.index")->with(['DiasFinal'=> $DiasFinal,'ContDiasF'=> $ContDiasF,'Fecha'=> $Fecha]);
                    
      }
@@ -179,7 +170,6 @@ class DayController extends Controller
 
 
     function Validar_dia($diaSemana){ 
-
          //         
 
         $dia = array('','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday');
@@ -193,19 +183,17 @@ class DayController extends Controller
 
 
     function Calculo_D($diaSemana)
-    {
-           //dd($diaSemana); 
-        foreach ($diaSemana as $dia) {
+    {  
+    
+        foreach ($diaSemana as $dia) {        
            
-           
-        $dias = array('','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday');
-      
-        $est=$dia->next_payment_date;
-        $fecha[] = $dias[date('N', strtotime($est))];           
-
-       }        
-                
-        return $fecha;
+        $dias = array('','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday');      
+        $est = $dia->next_payment_date;
+        $fechaF[] = $dias[date('N', strtotime($est))];
+        //dd($fechaF);
+         }        
+         
+         return $fechaF;
 
     }
 
@@ -213,10 +201,10 @@ class DayController extends Controller
 
     function contar($constante){ 
 
-                   // dd($constante);
+                  // dd($constante);
               $contan= DB::table('tenancies')->select('tenancies.next_payment_date')->where('next_payment_date', '=', $constante)->count();            
 
-           // dd($contan);
+          // dd($contan);
 
        return $contan;
      }

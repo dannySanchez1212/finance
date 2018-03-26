@@ -52,13 +52,11 @@
                                                 <td>{{ $tenancy->property_full_address }}</td>
                                                 <td>{{ $tenancy->last_paid }}</td>
                                                 <td>{{ $tenancy->match }}</td>
-                                              
                                                 <td class="text-center">
                                                     {!! Form::open(['method' => 'get', 'route' => ['tenancies.edit', $tenancy->id]]) !!}
                                                         <button class="btn btn-icon waves-effect waves-light btn-primary"> <i class="fa fa-edit"></i> </button>
                                                     {!! Form::close() !!}
                                                 </td>
-                                                
                                             </tr>
                                         @endforeach
                                     </tbody>
